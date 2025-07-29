@@ -14,14 +14,14 @@ export default function VideoPlayer() {
   const [videos] = useState<Video[]>([
     {
       id: '1',
-      title: 'The Orange Open Movie Project',
+      title: 'Vídeo 01',
       src: './assets/videos/video01.mp4',
       thumbnail: './assets/images/image01.png',
       duration: '10:58'
     },
     {
       id: '2',
-      title: 'Cute Cat',
+      title: 'Vídeo 02',
       src: './assets/videos/video02.mp4',
       thumbnail: './assets/images/image02.png',
       duration: '1:00'
@@ -48,6 +48,39 @@ export default function VideoPlayer() {
       videoRef.current.muted = isMuted;
     }
   }, [volume, isMuted]);
+
+  const playNextVideo = () => {
+    if (!selectedVideo) return;
+
+    const currentIndex = videos.findIndex(v => v.id === selectedVideo.id);
+    const nextIndex = (currentIndex + 1) % videos.length;
+    const nextVideo = videos[nextIndex];
+
+    setSelectedVideo(nextVideo);
+    setIsPlaying(true);
+    setCurrentTime(0);
+
+    setTimeout(() => {
+      if (videoRef.current) {
+        videoRef.current.play().catch(e => console.error("Erro ao reproduzir:", e));
+      }
+    }, 100);
+  };
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleEnded = () => {
+      playNextVideo();
+    };
+
+    video.addEventListener('ended', handleEnded);
+
+    return () => {
+      video.removeEventListener('ended', handleEnded);
+    };
+  }, [selectedVideo]);
 
   const handleVideoSelect = (video: Video) => {
     setSelectedVideo(video);
@@ -119,7 +152,7 @@ export default function VideoPlayer() {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Lista de vídeos */}
           <div className="w-full lg:w-1/3 bg-gray-800 rounded-lg p-4">
-            <h2 className="text-xl font-semibold mb-4">Videos List</h2>
+            <h2 className="text-xl font-semibold mb-4">Biblioteca de Vídeos</h2>
             <div className="space-y-3">
               {videos.map((video) => (
                 <div
@@ -161,7 +194,6 @@ export default function VideoPlayer() {
                         setDuration(videoRef.current.duration);
                       }
                     }}
-                    onEnded={() => setIsPlaying(false)}
                   />
                 </div>
 
@@ -259,7 +291,6 @@ export default function VideoPlayer() {
   );
 }
 
-// Componentes de ícones (mantendo o mesmo estilo anterior)
 function PlayIcon() {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
